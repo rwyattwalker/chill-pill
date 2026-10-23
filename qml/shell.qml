@@ -842,7 +842,7 @@ ShellRoot {
                         buttonBgOff: /*box.controlCenter && !mprisModule.hasPlayer ? "#222222" :*/ box.ccButtonBgOff
                         buttonFgOff: /*box.controlCenter && !mprisModule.hasPlayer ? "#999999" :*/ box.ccButtonFgOff
                         controlCenterOpen: box.controlCenter
-                        mediaAutoOpened: mediaAutoOpened
+                        mediaAutoOpened: root.mediaAutoOpened
                         hasPlayer: mprisModule.hasPlayer
                         playerHeight: box.ccButtonHeight
                         notificationPopup: notificationModule.active
@@ -1166,6 +1166,8 @@ ShellRoot {
                             // add/append notifications in the stack
                             delegate: Item {
                                 id: notifDelegate
+                                required property var modelData
+                                required property int index
                                 width: ListView.view.width
                                 height: contentColumn.implicitHeight + 7
 
@@ -1193,10 +1195,10 @@ ShellRoot {
                                     fillMode: Image.PreserveAspectFit
                                     asynchronous: true
                                     source: {
-                                        if (fsNotif.modelData.image)
-                                            return fsNotif.modelData.image;
-                                        if (fsNotif.modelData.appIcon) {
-                                            return fsNotif.modelData.appIcon.startsWith("/") ? "file://" + fsNotif.modelData.appIcon : "image://icon/" + fsNotif.modelData.appIcon;
+                                        if (notifDelegate.modelData.image)
+                                            return notifDelegate.modelData.image;
+                                        if (notifDelegate.modelData.appIcon) {
+                                            return notifDelegate.modelData.appIcon.startsWith("/") ? "file://" + notifDelegate.modelData.appIcon : "image://icon/" + notifDelegate.modelData.appIcon;
                                         }
                                         return "";
                                     }
@@ -1227,7 +1229,7 @@ ShellRoot {
                                         Layout.fillWidth: true
 
                                         Text {
-                                            text: fsNotif.modelData.summary
+                                            text: notifDelegate.modelData.summary
                                             color: Theme.fg
                                             font {
                                                 family: Theme.fontFamily
@@ -1239,7 +1241,7 @@ ShellRoot {
                                         }
 
                                         Text {
-                                            text: fsNotif.modelData.receivedTime ? Qt.formatTime(fsNotif.modelData.receivedTime, "hh:mm") : ""
+                                            text: notifDelegate.modelData.receivedTime ? Qt.formatTime(notifDelegate.modelData.receivedTime, "hh:mm") : ""
                                             color: "#858585"
                                             font {
                                                 family: Theme.fontFamily
@@ -1277,7 +1279,7 @@ ShellRoot {
                                                 anchors.fill: parent
                                                 hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: notificationModule.dismiss(fsNotif.modelData._id)
+                                                onClicked: notificationModule.dismiss(notifDelegate.modelData._id)
                                             }
                                         }
                                     }
@@ -1285,7 +1287,7 @@ ShellRoot {
                                     // description / body
                                     Text {
                                         id: bodyText
-                                        text: fsNotif.modelData.body
+                                        text: notifDelegate.modelData.body
                                         color: "#9f9f9f"
                                         font {
                                             family: Theme.fontFamily
@@ -1311,7 +1313,7 @@ ShellRoot {
                                     width: parent.width
                                     height: 1
                                     color: "#333"
-                                    visible: root.index < notificationModule.notifications.length - 1
+                                    visible: notifDelegate.index < notificationModule.notifications.length - 1
                                 }
                             }
                         }
