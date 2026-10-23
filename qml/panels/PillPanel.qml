@@ -13,11 +13,11 @@ import Quickshell.Services.Notifications
 import ".."
 
 PanelWindow {
+    id: panelWindow
     required property var shellRoot
     required property var mprisModule
     required property var countdownModule
     required property var notificationModule
-    id: panelWindow
     property var modelData
     screen: modelData
     WlrLayershell.layer: WlrLayershell.Top
@@ -48,8 +48,8 @@ PanelWindow {
             intersection: Intersection.Combine
             x: Math.floor(box.x)
             y: Math.floor(box.y)
-            width: Math.ceil(box.width)
-            height: Math.ceil(box.height)
+            width: panelWindow.shellRoot.pillShown ? Math.ceil(box.width) : 0
+            height: panelWindow.shellRoot.pillShown ? Math.ceil(box.height) : 0
         }
         Region {
             intersection: Intersection.Combine
@@ -166,6 +166,13 @@ PanelWindow {
         property int sliderHitSlop: sliderHeight * 2
         property int mprisControlsIconSize: 20
 
+        // Explicit control-center dependencies avoid same-name bindings
+        // resolving against the child component's own required properties.
+        readonly property var controlCenterVolumeModule: volumeModule
+        readonly property var controlCenterBrightnessModule: brightnessModule
+        readonly property var controlCenterBrightnessSetProc: brightnessSetProc
+        readonly property var controlCenterBrightnessThrottle: brightnessThrottle
+
         property string activeOsd: "" // volume, brightness, timer, battery
 
         Process {
@@ -193,9 +200,9 @@ PanelWindow {
         readonly property int notifBump: notificationModule.notifications.length > 0 ? Math.min(controlCenterPanel.notificationListContentHeight + 40, 130) : 0
 
         // adjust box shape conditionally
-        implicitWidth: activeOsd === "battery" ? shellRoot.osdWidth : box.activeOsd === "timer" ? shellRoot.osdWidth : (notificationModule.active && !shellRoot.notifFullscreenMode) ? 305 : controlCenter ? 390 : box.activeOsd === "volume" ? shellRoot.osdWidth : box.activeOsd === "brightness" ? shellRoot.osdWidth : shellRoot.mediaAutoOpened ? 340 : appLauncher ? 390 : miniDashboard ? 420 : cliphistOpen ? 460 : wallpaperSwitcherOpen ? 600 : row.implicitWidth + (12 * Config.paddingScale) + (box.hovered ? 68 : 56) * Config.paddingScale
+        implicitWidth: activeOsd === "battery" ? shellRoot.osdWidth : box.activeOsd === "timer" ? shellRoot.osdWidth : (notificationModule.active && !shellRoot.notifFullscreenMode && !controlCenter) ? 305 : controlCenter ? 390 : box.activeOsd === "volume" ? shellRoot.osdWidth : box.activeOsd === "brightness" ? shellRoot.osdWidth : shellRoot.mediaAutoOpened ? 340 : appLauncher ? 390 : miniDashboard ? 420 : cliphistOpen ? 460 : wallpaperSwitcherOpen ? 600 : row.implicitWidth + (12 * Config.paddingScale) + (box.hovered ? 68 : 56) * Config.paddingScale
 
-        implicitHeight: activeOsd === "battery" ? shellRoot.osdHeight : activeOsd === "timer" ? shellRoot.osdHeight : (notificationModule.active && !shellRoot.notifFullscreenMode) ? 52 : controlCenter && mprisModule.hasPlayer ? (240 + notifBump) : controlCenter ? (118 + notifBump) : activeOsd === "volume" ? shellRoot.osdHeight : activeOsd === "brightness" ? shellRoot.osdHeight : shellRoot.mediaAutoOpened ? 90 : cliphistOpen ? 270 : miniDashboard ? 155 : appLauncher ? 410 : wallpaperSwitcherOpen ? 308 : (row.implicitHeight * Config.pillScale) + 10
+        implicitHeight: activeOsd === "battery" ? shellRoot.osdHeight : activeOsd === "timer" ? shellRoot.osdHeight : (notificationModule.active && !shellRoot.notifFullscreenMode && !controlCenter) ? 52 : controlCenter && mprisModule.hasPlayer ? (240 + notifBump) : controlCenter ? (118 + notifBump) : activeOsd === "volume" ? shellRoot.osdHeight : activeOsd === "brightness" ? shellRoot.osdHeight : shellRoot.mediaAutoOpened ? 90 : cliphistOpen ? 270 : miniDashboard ? 155 : appLauncher ? 410 : wallpaperSwitcherOpen ? 308 : (row.implicitHeight * Config.pillScale) + 10
 
         radius: notificationModule.active ? 99 : shellRoot.mediaAutoOpened ? 22 : cliphistOpen ? 28 : controlCenter && (notificationModule.notifications.length > 0) ? 28 : controlCenter && mprisModule.hasPlayer ? 25 : controlCenter ? 20 : appLauncher ? 30 : miniDashboard ? 20 : wallpaperSwitcherOpen ? 30 : 20 * Config.pillScale
 
@@ -405,7 +412,7 @@ PanelWindow {
 
         // notification
         NotificationPopup {
-            active: notificationModule.active && !shellRoot.notifFullscreenMode && box.activeOsd === ""
+            active: notificationModule.active && !shellRoot.notifFullscreenMode && box.activeOsd === "" && !box.controlCenter
             notif: notificationModule.current
         }
 
@@ -522,6 +529,7 @@ PanelWindow {
 
                 sourceComponent: MediaPopup {
                     active: shellRoot.mediaAutoOpened
+                    mprisModule: panelWindow.mprisModule
                 }
             }
         }
@@ -531,13 +539,13 @@ PanelWindow {
             id: controlCenterPanel
             anchors.centerIn: parent
             panel: box
-            shellRoot: shellRoot
-            mprisModule: mprisModule
-            notificationModule: notificationModule
-            volumeModule: volumeModule
-            brightnessModule: brightnessModule
-            brightnessSetProc: brightnessSetProc
-            brightnessThrottle: brightnessThrottle
+            shellRoot: panelWindow.shellRoot
+            mprisModule: panelWindow.mprisModule
+            notificationModule: panelWindow.notificationModule
+            volumeModule: box.controlCenterVolumeModule
+            brightnessModule: box.controlCenterBrightnessModule
+            brightnessSetProc: box.controlCenterBrightnessSetProc
+            brightnessThrottle: box.controlCenterBrightnessThrottle
         }
 
         // mini dashboard opens on right click
@@ -691,6 +699,7 @@ PanelWindow {
 
             // internet protocol information
             IpStatus {
+                active: box.miniDashboard
                 anchors.left: parent.left
                 anchors.leftMargin: 5
                 anchors.bottom: parent.bottom
@@ -699,6 +708,7 @@ PanelWindow {
 
             // bandwidth usage status
             Bandwidth {
+                active: box.miniDashboard
                 anchors.right: parent.right
                 anchors.rightMargin: 4
                 anchors.bottom: parent.bottom
@@ -910,6 +920,7 @@ PanelWindow {
         asynchronous: false
 
         sourceComponent: WeatherPopup {
+            panel: box
             onShownChanged: if (!shown)
                 closeTimer.start()
         }

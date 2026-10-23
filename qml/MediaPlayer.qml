@@ -5,12 +5,14 @@ import Quickshell.Services.Mpris
 
 Rectangle {
     id: mediaCard
+    required property var mprisModule
+    required property var panel
     anchors.top: parent.top
     anchors.left: parent.left
     anchors.right: parent.right
     height: mprisModule.hasPlayer ? 118 : 0
     radius: 12
-    color: "#1a1a1a"
+    color: Theme.surface
     visible: mprisModule.hasPlayer
     clip: true
     border.color: "#202020"
@@ -27,25 +29,17 @@ Rectangle {
     property string mprisTimePlayed: "0:00"
     property string mprisTimeTotal: "0:00"
 
-    function formatMprisTime(val) {
-        let n = Number(val)
-        if (isNaN(n) || n <= 0) return "0:00"
-        let m = Math.floor(n / 60)
-        let s = Math.floor(n % 60)
-        return m + ":" + (s < 10 ? "0" : "") + s
-    }
-
     // interpolate every second
     Timer {
         id: progressPoller
         interval: 1000
-        running: box.controlCenter && mprisModule.hasPlayer
+        running: panel.controlCenter && mprisModule.hasPlayer
         repeat: true
         triggeredOnStart: true
         onTriggered: {
             mediaCard.mprisProgress = mprisModule.progress
-            mediaCard.mprisTimePlayed = mediaCard.formatMprisTime(mprisModule.polledPosition)
-            mediaCard.mprisTimeTotal = mediaCard.formatMprisTime(mprisModule.polledLength)
+            mediaCard.mprisTimePlayed = mprisModule.formatTime(mprisModule.polledPosition)
+            mediaCard.mprisTimeTotal = mprisModule.formatTime(mprisModule.polledLength)
         }
     }
 

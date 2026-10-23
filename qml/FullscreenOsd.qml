@@ -51,10 +51,9 @@ PanelWindow {
       NumberAnimation { duration: root.animDuration * 0.6; easing.type: Easing.OutExpo }
     }
 
-    Row {
+    Item {
       id: cardRow
-      anchors.centerIn: parent
-      spacing: 10
+      anchors.fill: parent
     }
   }
 }

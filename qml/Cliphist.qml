@@ -28,10 +28,7 @@ Item {
     onShownChanged: {
         if (shown) {
             refresh();
-            searchQuery = "";
-            searchInput.text = "";
-            selectedIndex = 0;
-            searchInput.forceActiveFocus();
+            resetSearch();
         }
     }
 
@@ -44,6 +41,29 @@ Item {
         listProc.running = true;
         listCountProc.running = false;
         listCountProc.running = true;
+    }
+
+    function resetSearch() {
+        searchQuery = "";
+        searchInput.clear();
+        selectedIndex = 0;
+        searchInput.focusInput();
+    }
+
+    function selectNext() {
+        if (filteredEntries.length === 0)
+            return;
+
+        selectedIndex = (selectedIndex + 1) % filteredEntries.length;
+        listView.positionViewAtIndex(selectedIndex, ListView.Contain);
+    }
+
+    function selectPrevious() {
+        if (filteredEntries.length === 0)
+            return;
+
+        selectedIndex = selectedIndex <= 0 ? filteredEntries.length - 1 : selectedIndex - 1;
+        listView.positionViewAtIndex(selectedIndex, ListView.Contain);
     }
 
     function copySelected() {
@@ -167,8 +187,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 18
-        color: "#1a1a1a"
-        border.color: "#333"
+        color: Theme.surface
+        border.color: Theme.borderSubtle
         border.width: 1
         clip: true
     }
@@ -190,9 +210,10 @@ Item {
                     pixelSize: 12
                     weight: 700
                 }
-                anchors.left: parent.left
-                anchors.leftMargin: 4
+                Layout.leftMargin: 4
             }
+
+            Item { Layout.fillWidth: true }
 
             Text {
                 id: listCountText
@@ -204,67 +225,30 @@ Item {
                     pixelSize: 11
                     weight: 300
                 }
-                anchors.right: parent.right
-                anchors.rightMargin: 6
+                Layout.rightMargin: 6
             }
         }
 
         // search box
-        Rectangle {
+        SearchField {
+            id: searchInput
             width: parent.width
             height: 26
             radius: 6
             color: "#252525"
-            border.color: searchInput.activeFocus ? "#555" : "#333"
-            border.width: 1
-
-            TextInput {
-                id: searchInput
-                anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                verticalAlignment: TextInput.AlignVCenter
-                color: Theme.fg
-                font {
-                    family: Theme.fontFamily
-                    pixelSize: 10
-                }
-                clip: true
-
-                onTextChanged: root.searchQuery = text
-
-                Text {
-                    text: "search clips..."
-                    color: "#666"
-                    font: searchInput.font
-                    visible: searchInput.text.length === 0
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                Keys.onPressed: event => {
-                    if (event.key === Qt.Key_Down) {
-                        if (root.filteredEntries.length > 0) {
-                            root.selectedIndex = (root.selectedIndex + 1) % root.filteredEntries.length;
-                        }
-                        listView.positionViewAtIndex(root.selectedIndex, ListView.Contain);
-                        event.accepted = true;
-                    } else if (event.key === Qt.Key_Up) {
-                        if (root.filteredEntries.length > 0)
-                            root.selectedIndex = root.selectedIndex <= 0 ? root.filteredEntries.length - 1 : root.selectedIndex - 1;
-                        listView.positionViewAtIndex(root.selectedIndex, ListView.Contain);
-                        event.accepted = true;
-                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.copySelected();
-                        event.accepted = true;
-                    } else if (event.key === Qt.Key_Escape) {
-                        event.accepted = true;
-                        root.closeRequested();
-                    } else if (event.key === Qt.Key_Delete) {
-                        root.deleteSelected();
-                        event.accepted = true;
-                    }
-                }
-            }
+            normalBorderColor: Theme.borderSubtle
+            focusedBorderColor: "#555"
+            placeholder: "search clips..."
+            placeholderColor: "#666"
+            textPixelSize: 10
+            horizontalPadding: 8
+            handleDelete: true
+            onQueryChanged: query => root.searchQuery = query
+            onNextRequested: root.selectNext()
+            onPreviousRequested: root.selectPrevious()
+            onSubmitRequested: root.copySelected()
+            onCancelRequested: root.closeRequested()
+            onDeleteRequested: root.deleteSelected()
         }
 
         ListView {

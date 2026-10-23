@@ -5,6 +5,12 @@ import QtQuick
 Singleton {
     property string bg: "#171717"
     property string bg1: "#151515"
+    property string surface: "#1a1a1a"
+    property string inputSurface: "#222222"
+    property string raisedSurface: "#242424"
+    property string borderSubtle: "#333"
+    property string textMuted: "#777"
+    property string warning: "#f9cb41"
 
     property string fg: "#dadada"
     property string fg1: "#e7e7e7"

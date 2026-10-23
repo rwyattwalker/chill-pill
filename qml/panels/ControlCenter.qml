@@ -8,6 +8,7 @@ import QtQuick.Controls
 import ".."
 
 Item {
+    id: root
     required property var panel
     required property var shellRoot
     required property var mprisModule
@@ -19,7 +20,7 @@ Item {
     readonly property real notificationListContentHeight: notifList.contentHeight
         anchors.centerIn: parent
         width: panel.implicitWidth - 24
-        opacity: panel.controlCenter && !shellRoot.mediaAutoOpened && panel.activeOsd === "" && !notificationModule.active ? 1 : 0
+        opacity: panel.controlCenter && !shellRoot.mediaAutoOpened && panel.activeOsd === "" ? 1 : 0
         visible: opacity > 0
         height: panel.controlCenter && panel.activeOsd === "" ? panel.implicitHeight - 25 : 0
 
@@ -37,6 +38,8 @@ Item {
 
         // media player
         MediaPlayer {
+            panel: root.panel
+            mprisModule: root.mprisModule
             margin: 14
             artistFontSize: 10
             artistFontWeight: 300

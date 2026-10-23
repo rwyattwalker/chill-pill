@@ -4,6 +4,7 @@ import QtQuick
 
 Item {
     id: root
+    required property bool active
 
     property string rx: "..."
     property string tx: "..."
@@ -11,15 +12,26 @@ Item {
     implicitWidth: col.implicitWidth
     implicitHeight: col.implicitHeight
 
+    function refresh() {
+        bwProc.running = false
+        bwProc.running = true
+    }
+
     Process {
         id: bwProc
         command: ["nusgmon", "--today", "--json"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
+                const output = this.text.trim()
+                if (!output.startsWith("{")) {
+                    root.rx = "--"
+                    root.tx = "--"
+                    return
+                }
+
                 try {
-                    let data = JSON.parse(this.text.trim())
-                    let today = data.today || data
+                    let data = JSON.parse(output)
                     let unit = data.unit || "MB"
                     let up   = data.total[0].up
                     let down = data.total[0].down
@@ -34,13 +46,10 @@ Item {
 
     Timer {
         interval: Config.bandwidthRefreshInterval
-        running: box.miniDashboard
+        running: root.active
         repeat: true
         triggeredOnStart: true
-        onTriggered: {
-            bwProc.running = false
-            bwProc.running = true
-        }
+        onTriggered: root.refresh()
     }
 
     Column {

@@ -5,6 +5,7 @@ import QtQuick.Effects
 
 Item {
     id: root
+    required property var mprisModule
     property bool active: false
     anchors.centerIn: parent
     width: 295
@@ -17,14 +18,6 @@ Item {
     property string mprisTimePlayed: "0:00"
     property string mprisTimeTotal: "0:00"
 
-    function formatMprisTime(val) {
-        let n = Number(val)
-        if (isNaN(n) || n <= 0) return "0:00"
-        let m = Math.floor(n / 60)
-        let s = Math.floor(n % 60)
-        return m + ":" + (s < 10 ? "0" : "") + s
-    }
-
     Timer {
         interval: 500
         running: root.active
@@ -32,8 +25,8 @@ Item {
         triggeredOnStart: true
         onTriggered: {
             root.mprisProgress = mprisModule.progress
-            root.mprisTimePlayed = root.formatMprisTime(mprisModule.polledPosition)
-            root.mprisTimeTotal = root.formatMprisTime(mprisModule.polledLength)
+            root.mprisTimePlayed = mprisModule.formatTime(mprisModule.polledPosition)
+            root.mprisTimeTotal = mprisModule.formatTime(mprisModule.polledLength)
         }
     }
 

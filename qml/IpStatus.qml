@@ -4,6 +4,7 @@ import QtQuick
 
 Item {
     id: root
+    required property bool active
 
     property string ip: "..."
     property string iface: "..."
@@ -11,6 +12,13 @@ Item {
 
     implicitWidth: col.implicitWidth
     implicitHeight: col.implicitHeight
+
+    function refresh() {
+        ipProc.running = false
+        ipProc.running = true
+        vpnProc.running = false
+        vpnProc.running = true
+    }
 
     // detect ip with interface
     Process {
@@ -39,13 +47,10 @@ Item {
     // refresh every minute
     Timer {
         interval: 60000
-        running: box.miniDashboard
+        running: root.active
         repeat: true
         triggeredOnStart: true
-        onTriggered: {
-            ipProc.running = false; ipProc.running = true
-            vpnProc.running = false; vpnProc.running = true
-        }
+        onTriggered: root.refresh()
     }
 
     Column {

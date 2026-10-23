@@ -28,6 +28,18 @@ ShellRoot {
         targetBox.wallpaperSwitcherOpen = false;
     }
 
+    // All shortcut and IPC toggles are mutually exclusive. Keep the individual
+    // `show()` handlers below explicit: a few intentionally preserve existing
+    // overlapping states for IPC callers.
+    function toggleExclusiveSurface(surfaceProperty) {
+        if (!primaryBox)
+            return;
+
+        const shouldOpen = !primaryBox[surfaceProperty];
+        closeTransientSurfaces(primaryBox);
+        primaryBox[surfaceProperty] = shouldOpen;
+    }
+
     GlobalShortcut {
         appid: "nix-pill"
         name: "togglePill"
@@ -47,92 +59,40 @@ ShellRoot {
         name: "controlCenter"
         description: "Toggle NixPill control center"
 
-        onPressed: {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = !root.primaryBox.controlCenter;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
-        }
+        onPressed: root.toggleExclusiveSurface("controlCenter")
     }
 
     GlobalShortcut {
         appid: "nix-pill"
         name: "wallpaperSwitcher"
         description: "Toggle NixPill wallpaper switcher"
-        onPressed: {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = !root.primaryBox.wallpaperSwitcherOpen;
-        }
+        onPressed: root.toggleExclusiveSurface("wallpaperSwitcherOpen")
     }
 
     GlobalShortcut {
         appid: "nix-pill"
         name: "cliphist"
         description: "Toggle NixPill cliphist"
-        onPressed: {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = !root.primaryBox.cliphistOpen;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
-        }
+        onPressed: root.toggleExclusiveSurface("cliphistOpen")
     }
 
     GlobalShortcut {
         appid: "nix-pill"
         name: "minidash"
         description: "Toggle NixPill miniDashboard"
-        onPressed: {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = !root.primaryBox.miniDashboard;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
-        }
+        onPressed: root.toggleExclusiveSurface("miniDashboard")
     }
     GlobalShortcut {
         appid: "nix-pill"
         name: "launcher"
         description: "Toggle NixPill app launcher"
-        onPressed: {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = !root.primaryBox.appLauncher;
-            root.primaryBox.wallpaperSwitcherOpen = false;
-        }
+        onPressed: root.toggleExclusiveSurface("appLauncher")
     }
 
     IpcHandler {
         target: "cliphist"
         function toggle(): void {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = !root.primaryBox.cliphistOpen;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
+            root.toggleExclusiveSurface("cliphistOpen");
         }
         function show(): void {
             if (!root.primaryBox)
@@ -151,14 +111,7 @@ ShellRoot {
     IpcHandler {
         target: "controlCenter"
         function toggle(): void {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = !root.primaryBox.controlCenter;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
+            root.toggleExclusiveSurface("controlCenter");
         }
         function show(): void {
             if (!root.primaryBox)
@@ -177,14 +130,7 @@ ShellRoot {
     IpcHandler {
         target: "miniDashboard"
         function toggle(): void {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = !root.primaryBox.miniDashboard;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = false;
+            root.toggleExclusiveSurface("miniDashboard");
         }
         function show(): void {
             if (!root.primaryBox)
@@ -204,14 +150,7 @@ ShellRoot {
     IpcHandler {
         target: "appLauncher"
         function toggle(): void {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = !root.primaryBox.appLauncher;
-            root.primaryBox.wallpaperSwitcherOpen = false;
+            root.toggleExclusiveSurface("appLauncher");
         }
         function show(): void {
             if (!root.primaryBox)
@@ -234,14 +173,7 @@ ShellRoot {
     IpcHandler {
         target: "wallpaperSwitcher"
         function toggle(): void {
-            if (!root.primaryBox)
-                return;
-
-            root.primaryBox.controlCenter = false;
-            root.primaryBox.miniDashboard = false;
-            root.primaryBox.cliphistOpen = false;
-            root.primaryBox.appLauncher = false;
-            root.primaryBox.wallpaperSwitcherOpen = !root.primaryBox.wallpaperSwitcherOpen;
+            root.toggleExclusiveSurface("wallpaperSwitcherOpen");
         }
         function show(): void {
             if (!root.primaryBox)

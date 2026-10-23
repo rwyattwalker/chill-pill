@@ -40,6 +40,16 @@ Item {
     property real polledLength: 0
     readonly property real progress: polledLength > 0 ? polledPosition / polledLength : 0
 
+    function formatTime(value) {
+        const seconds = Number(value)
+        if (isNaN(seconds) || seconds <= 0)
+            return "0:00"
+
+        const minutes = Math.floor(seconds / 60)
+        const remainder = Math.floor(seconds % 60)
+        return minutes + ":" + (remainder < 10 ? "0" : "") + remainder
+    }
+
     function pollProgress() {
         if (!activePlayer) {
             polledPosition = 0

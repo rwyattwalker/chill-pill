@@ -24,8 +24,8 @@ PanelWindow {
   WlrLayershell.keyboardFocus: passwordPromptVisible ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
   exclusionMode: ExclusionMode.Ignore
-  width: 270
-  height: 348
+  implicitWidth: 270
+  implicitHeight: 348
   color: "transparent"
 
   // auto hide if control center close

@@ -19,6 +19,7 @@ Network 1.0 Network.qml
 NotificationModule 1.0 NotificationModule.qml
 NotificationPopup 1.0 NotificationPopup.qml
 OsdBar 1.0 OsdBar.qml
+SearchField 1.0 SearchField.qml
 singleton Theme 1.0 Theme.qml
 Volume 1.0 Volume.qml
 WallpaperSwitcher 1.0 WallpaperSwitcher.qml

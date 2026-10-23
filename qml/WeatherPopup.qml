@@ -4,8 +4,9 @@ import QtQuick.Layouts
 
 Rectangle {
   id: weatherPopup
+  required property var panel
 
-  readonly property color tileBg: "#242424"
+  readonly property color tileBg: Theme.raisedSurface
   readonly property int tileRadius: 11
   readonly property color dividerColor: "#2a2a2a"
   readonly property color labelText: "#7b7b7b"
@@ -25,7 +26,7 @@ Rectangle {
   width: 280
   height: contentCol.implicitHeight + 26
   x: (Screen.width - weatherPopup.width) / 2
-  y: box.y + box.height + 5
+  y: panel.y + panel.height + 5
   color: Theme.bg
   radius: 20
 

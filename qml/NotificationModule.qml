@@ -20,7 +20,7 @@ Item {
 
   SoundEffect {
     id: notifySound
-    source: "file:///" + Quickshell.env("HOME") + "/.config/quickshell/notification.wav"
+    source: "file://" + Quickshell.env("NIXPILL_SHELL_DIR") + "/share/notification.wav"
     volume: 1
   }
 
@@ -30,6 +30,17 @@ Item {
 
   function syncReversed(): void {
     notificationsReversed = notifications.slice().reverse()
+  }
+
+  function refreshNotifications(): void {
+    syncReversed()
+    notificationsChanged()
+  }
+
+  function removeFromQueue(entry): void {
+    const index = queue.indexOf(entry)
+    if (index !== -1)
+      queue.splice(index, 1)
   }
 
   function makeEntry(notif) {
@@ -71,8 +82,7 @@ Item {
           if (idx !== -1) notifications.splice(idx, 1)
           notifications.push(dup)
 
-          syncReversed()
-          notificationsChanged()
+          refreshNotifications()
           if (!dndEnabled) {
             queue.push(dup)
             trigger()
@@ -89,8 +99,7 @@ Item {
       const old = notifications.shift()
       old.tracked = false
     }
-    syncReversed()
-    notificationsChanged()
+    refreshNotifications()
     if (dndEnabled) return
     queue.push(entry)
     trigger()
@@ -118,10 +127,8 @@ Item {
     const entry = notifications[idx]
     notifications.splice(idx, 1)
     entry.tracked = false
-    const qidx = queue.indexOf(entry)
-    if (qidx !== -1) queue.splice(qidx, 1)
-    syncReversed()
-    notificationsChanged()
+    removeFromQueue(entry)
+    refreshNotifications()
   }
 
   function clearAll(): void {

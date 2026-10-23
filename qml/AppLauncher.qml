@@ -40,11 +40,31 @@ Item {
     onShownChanged: {
         if (shown) {
             loadApps()
-            searchQuery = ""
-            searchInput.text = ""
-            selectedIndex = 0
-            searchInput.forceActiveFocus()
+            resetSearch()
         }
+    }
+
+    function resetSearch() {
+        searchQuery = ""
+        searchInput.clear()
+        selectedIndex = 0
+        searchInput.focusInput()
+    }
+
+    function selectNext() {
+        if (filteredApps.length === 0)
+            return
+
+        selectedIndex = (selectedIndex + 1) % filteredApps.length
+        appList.positionViewAtIndex(selectedIndex, ListView.Contain)
+    }
+
+    function selectPrevious() {
+        if (filteredApps.length === 0)
+            return
+
+        selectedIndex = selectedIndex <= 0 ? filteredApps.length - 1 : selectedIndex - 1
+        appList.positionViewAtIndex(selectedIndex, ListView.Contain)
     }
 
     function loadApps() {
@@ -81,8 +101,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: 19
-        color: "#1a1a1a"
-        border.color: "#333"
+        color: Theme.surface
+        border.color: Theme.borderSubtle
         border.width: 1
     }
 
@@ -98,9 +118,10 @@ Item {
               text: "Applications"
               color: Theme.fg
               font { family: Theme.fontFamily; pixelSize: 12; weight: 700 }
-              anchors.left: parent.left
-              anchors.leftMargin: 5
+              Layout.leftMargin: 5
           }
+
+          Item { Layout.fillWidth: true }
 
           Text {
               id: listCountText
@@ -109,62 +130,22 @@ Item {
                      + " / " + appList.count + " (" + appList.count + ")"
               color: "#999999"
               font { family: Theme.fontFamily; pixelSize: 9; weight: 300 }
-              anchors.right: parent.right
-              anchors.rightMargin: 6
+              Layout.rightMargin: 6
             }
         }
 
-        Rectangle {
+        SearchField {
+            id: searchInput
             width: parent.width
             height: 30
             radius: 8
-            color: "#222222"
-            border.color: searchInput.activeFocus ? "#666" : "#333"
-            border.width: 1
-            Behavior on border.color { ColorAnimation { duration: 120 } }
-
-            TextInput {
-                id: searchInput
-                anchors.fill: parent
-                anchors.leftMargin: 10
-                anchors.rightMargin: 10
-                verticalAlignment: TextInput.AlignVCenter
-                color: Theme.fg
-                font { family: Theme.fontFamily; pixelSize: 11 }
-                clip: true
-
-                onTextChanged: root.searchQuery = text
-
-                Text {
-                    text: "search apps..."
-                    color: "#777"
-                    font: searchInput.font
-                    visible: searchInput.text.length === 0
-                    anchors.verticalCenter: parent.verticalCenter
-                }
-
-                Keys.onPressed: (event) => {
-                    if (event.key === Qt.Key_Down) {
-                        if (root.filteredApps.length > 0)
-                            root.selectedIndex = (root.selectedIndex + 1) % root.filteredApps.length
-                        appList.positionViewAtIndex(root.selectedIndex, ListView.Contain)
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Up) {
-                        if (root.filteredApps.length > 0)
-                            root.selectedIndex = root.selectedIndex <= 0
-                                ? root.filteredApps.length - 1
-                                : root.selectedIndex - 1
-                        appList.positionViewAtIndex(root.selectedIndex, ListView.Contain)
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        root.launchSelected()
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Escape) {
-                        root.closeRequested()
-                        event.accepted = true
-                    }
-                }
-            }
+            color: Theme.inputSurface
+            placeholder: "search apps..."
+            onQueryChanged: query => root.searchQuery = query
+            onNextRequested: root.selectNext()
+            onPreviousRequested: root.selectPrevious()
+            onSubmitRequested: root.launchSelected()
+            onCancelRequested: root.closeRequested()
         }
 
         ListView {

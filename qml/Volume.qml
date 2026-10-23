@@ -16,9 +16,6 @@ RowLayout {
     readonly property bool muted: ready && sink.audio.muted
     readonly property int vol: ready ? Math.round(sink.audio.volume * 100) : 0
 
-    readonly property var sinkProps: ready ? sink.properties : ({})
-    onSinkPropsChanged: console.log("PW sink props:", JSON.stringify(sinkProps))
-
     property string activePort: ""
     readonly property bool isHeadphone: activePort.indexOf("headphone") !== -1 || activePort.indexOf("headset") !== -1
     spacing: 4 * Config.paddingScale
@@ -79,12 +76,10 @@ RowLayout {
         font.pixelSize: 11 * Config.pillScale
     }
 
-    MouseArea {
-        id: audioMuted
-        anchors.fill: parent
+    TapHandler {
         cursorShape: Qt.PointingHandCursor
-        onClicked: sink.audio.muted = !sink.audio.muted
-        hoverEnabled: true
+        acceptedButtons: Qt.LeftButton
+        onTapped: root.sink.audio.muted = !root.sink.audio.muted
     }
 
     // percentage

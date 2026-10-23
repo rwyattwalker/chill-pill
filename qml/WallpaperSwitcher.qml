@@ -12,11 +12,17 @@ Rectangle {
   property bool awwwMissing: false
   anchors.fill: parent
 
+  function focusFirstWallpaper() {
+    if (wallpaperModel.status !== FolderListModel.Ready)
+      return
+
+    wallGrid.currentIndex = 0
+    wallGrid.forceActiveFocus()
+  }
+
   onShownChanged: {
-    if (shown && wallpaperModel.status === FolderListModel.Ready) {
-      wallGrid.currentIndex = 0
-      wallGrid.forceActiveFocus()
-    }
+    if (shown)
+      focusFirstWallpaper()
   }
 
   color: "#1e1e1e"
@@ -54,10 +60,8 @@ Rectangle {
     sortField: FolderListModel.Name
 
     onStatusChanged: {
-      if (status === FolderListModel.Ready && wallpaperPopup.shown) {
-        wallGrid.currentIndex = 0
-        wallGrid.forceActiveFocus()
-      }
+      if (status === FolderListModel.Ready && wallpaperPopup.shown)
+        wallpaperPopup.focusFirstWallpaper()
     }
   }
 
@@ -73,7 +77,7 @@ Rectangle {
       Layout.fillWidth: true
       horizontalAlignment: Text.AlignHCenter
       wrapMode: Text.WordWrap
-      color: "#f9cb41"
+      color: Theme.warning
       text: "awww not found on $PATH\ninstall it to apply wallpapers"
       font { family: Theme.fontFamily; pixelSize: 12 }
     }
@@ -87,7 +91,7 @@ Rectangle {
       Layout.fillWidth: true
       horizontalAlignment: Text.AlignHCenter
       wrapMode: Text.WordWrap
-      color: "#f9cb41"
+      color: Theme.warning
       text: "No wallpapers found in\n" + Config.wallpapersDir
       font { family: Theme.fontFamily; pixelSize: 12 }
     }
