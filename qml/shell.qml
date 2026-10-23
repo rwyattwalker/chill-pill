@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
@@ -34,7 +36,7 @@ ShellRoot {
             if (!root.primaryBox)
                 return;
 
-            pillShown = !pillShown;
+            root.pillShown = !root.pillShown;
             root.closeTransientSurfaces(root.primaryBox);
         }
     }
@@ -309,12 +311,10 @@ ShellRoot {
                 right: true
             }
 
-            margins {
-                top: Config.pillTopMargin
-            }
+            margins.top: Config.pillTopMargin
 
             // fixed gap of the active window for the top bar
-            exclusiveZone: pillShown ? Config.pillBottomMargin : 0
+            exclusiveZone: root.pillShown ? Config.pillBottomMargin : 0
             color: "transparent"
 
             // Mask input to only the capsule
@@ -347,12 +347,12 @@ ShellRoot {
                 id: box
                 anchors.top: parent.top
                 anchors.horizontalCenter: parent.horizontalCenter
-                opacity: (!fullscreenActive && !notifFullscreenMode && pillShown) ? 1 : 0
+                opacity: (!root.fullscreenActive && !root.notifFullscreenMode && root.pillShown) ? 1 : 0
                 visible: opacity > 0
                 clip: true
-                property real slideY: pillShown ? 0 : -box.height - Config.pillTopMargin
-                property real squashY: pillShown ? 1.0 : 0.65
-                property real squashX: pillShown ? 1.0 : 0.96
+                property real slideY: root.pillShown ? 0 : -box.height - Config.pillTopMargin
+                property real squashY: root.pillShown ? 1.0 : 0.65
+                property real squashX: root.pillShown ? 1.0 : 0.96
 
                 transform: [
                     Translate {
@@ -461,18 +461,18 @@ ShellRoot {
                 onImplicitHeightChanged: {
                     heightAnim.stop();
                     heightAnim.to = implicitHeight;
-                    heightAnim.duration = mediaAutoOpened ? 650 : 550;
+                    heightAnim.duration = root.mediaAutoOpened ? 650 : 550;
                     heightAnim.start();
                 }
 
                 readonly property int notifBump: notificationModule.notifications.length > 0 ? Math.min(notifList.contentHeight + 40, 130) : 0
 
                 // adjust box shape conditionally
-                implicitWidth: box.activeOsd === "battery" ? osdWidth : box.activeOsd === "timer" ? osdWidth : (notificationModule.active && !notifFullscreenMode) ? 305 : controlCenter ? 390 : activeOsd === "volume" ? osdWidth : box.activeOsd === "brightness" ? osdWidth : mediaAutoOpened ? 340 : appLauncher ? 390 : miniDashboard ? 420 : cliphistOpen ? 460 : wallpaperSwitcherOpen ? 600 : row.implicitWidth + (12 * Config.paddingScale) + (hovered ? 68 : 56) * Config.paddingScale
+                implicitWidth: activeOsd === "battery" ? root.osdWidth : box.activeOsd === "timer" ? root.osdWidth : (notificationModule.active && !root.notifFullscreenMode) ? 305 : controlCenter ? 390 : box.activeOsd === "volume" ? root.osdWidth : box.activeOsd === "brightness" ? root.osdWidth : root.mediaAutoOpened ? 340 : appLauncher ? 390 : miniDashboard ? 420 : cliphistOpen ? 460 : wallpaperSwitcherOpen ? 600 : row.implicitWidth + (12 * Config.paddingScale) + (box.hovered ? 68 : 56) * Config.paddingScale
 
-                implicitHeight: activeOsd === "battery" ? osdHeight : activeOsd === "timer" ? osdHeight : (notificationModule.active && !notifFullscreenMode) ? 52 : controlCenter && mprisModule.hasPlayer ? (240 + notifBump) : controlCenter ? (118 + notifBump) : activeOsd === "volume" ? osdHeight : activeOsd === "brightness" ? osdHeight : mediaAutoOpened ? 90 : cliphistOpen ? 270 : miniDashboard ? 155 : appLauncher ? 410 : wallpaperSwitcherOpen ? 308 : (row.implicitHeight * Config.pillScale) + 10
+                implicitHeight: activeOsd === "battery" ? root.osdHeight : activeOsd === "timer" ? root.osdHeight : (notificationModule.active && !root.notifFullscreenMode) ? 52 : controlCenter && mprisModule.hasPlayer ? (240 + notifBump) : controlCenter ? (118 + notifBump) : activeOsd === "volume" ? root.osdHeight : activeOsd === "brightness" ? root.osdHeight : root.mediaAutoOpened ? 90 : cliphistOpen ? 270 : miniDashboard ? 155 : appLauncher ? 410 : wallpaperSwitcherOpen ? 308 : (row.implicitHeight * Config.pillScale) + 10
 
-                radius: notificationModule.active ? 99 : mediaAutoOpened ? 22 : cliphistOpen ? 28 : controlCenter && (notificationModule.notifications.length > 0) ? 28 : controlCenter && mprisModule.hasPlayer ? 25 : controlCenter ? 20 : appLauncher ? 30 : miniDashboard ? 20 : wallpaperSwitcherOpen ? 30 : 20 * Config.pillScale
+                radius: notificationModule.active ? 99 : root.mediaAutoOpened ? 22 : cliphistOpen ? 28 : controlCenter && (notificationModule.notifications.length > 0) ? 28 : controlCenter && mprisModule.hasPlayer ? 25 : controlCenter ? 20 : appLauncher ? 30 : miniDashboard ? 20 : wallpaperSwitcherOpen ? 30 : 20 * Config.pillScale
 
                 Behavior on radius {
                     NumberAnimation {
@@ -481,7 +481,7 @@ ShellRoot {
                     }
                 }
 
-                color: mediaAutoOpened ? Theme.bg1 : controlCenter && mprisModule.hasPlayer ? "#1a1a1a" : bg
+                color: root.mediaAutoOpened ? Theme.bg1 : controlCenter && mprisModule.hasPlayer ? "#1a1a1a" : root.bg
 
                 onMiniDashboardChanged: {
                     if (!box.miniDashboard) {
@@ -513,7 +513,7 @@ ShellRoot {
                     onExited: box.hovered = false
 
                     onClicked: mouse => {
-                        if (mediaAutoOpened)
+                        if (root.mediaAutoOpened)
                             return;
 
                         // restrict control center to only accept left click
@@ -548,7 +548,7 @@ ShellRoot {
                         if (mouse.button === Qt.LeftButton) {
                             console.log("Left click detected, opening control center");
                             box.controlCenter = !box.controlCenter;
-                            mediaAutoOpened = false;
+                            root.mediaAutoOpened = false;
                             box.appLauncher = false;
                             box.wallpaperSwitcherOpen = false;
                             mediaPopupHideTimer.stop();
@@ -556,7 +556,7 @@ ShellRoot {
 
                         if (mouse.button === Qt.MiddleButton) {
                             console.log("Middle click detected, opening cliphist");
-                            mediaAutoOpened = false;
+                            root.mediaAutoOpened = false;
                             box.appLauncher = false;
                             box.wallpaperSwitcherOpen = false;
                             box.cliphistOpen = !box.cliphistOpen;
@@ -564,7 +564,7 @@ ShellRoot {
 
                         if (mouse.button === Qt.RightButton) {
                             console.log("Right click detected, opening mini dashboard");
-                            mediaAutoOpened = false;
+                            root.mediaAutoOpened = false;
                             box.appLauncher = false;
                             box.wallpaperSwitcherOpen = false;
                             box.miniDashboard = !box.miniDashboard;
@@ -593,7 +593,7 @@ ShellRoot {
                     anchors.leftMargin: 28
                     anchors.rightMargin: 28
                     // spacing: 13 * Config.paddingScale
-                    opacity: !box.cliphistOpen && !notificationModule.active && !mediaAutoOpened && !box.controlCenter && !box.miniDashboard && box.activeOsd === "" && !box.wallpaperSwitcherOpen && !box.appLauncher ? 1 : 0
+                    opacity: !box.cliphistOpen && !notificationModule.active && !root.mediaAutoOpened && !box.controlCenter && !box.miniDashboard && box.activeOsd === "" && !box.wallpaperSwitcherOpen && !box.appLauncher ? 1 : 0
                     visible: opacity > 0
 
                     Behavior on opacity {
@@ -633,7 +633,7 @@ ShellRoot {
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         Clock {
-                            anchors.centerIn: parent
+                            Layout.alignment: Qt.AlignVCenter
                         }
                     }
                 }
@@ -680,7 +680,7 @@ ShellRoot {
 
                 // notification
                 NotificationPopup {
-                    active: notificationModule.active && !notifFullscreenMode && box.activeOsd === ""
+                    active: notificationModule.active && !root.notifFullscreenMode && box.activeOsd === ""
                     notif: notificationModule.current
                 }
 
@@ -689,7 +689,7 @@ ShellRoot {
                     anchors.centerIn: parent
                     width: box.implicitWidth - 26
                     height: box.cliphistOpen ? box.implicitHeight - 26 : 0
-                    opacity: box.cliphistOpen && !notificationModule.active && box.activeOsd === "" && !mediaAutoOpened && !box.controlCenter ? 1 : 0
+                    opacity: box.cliphistOpen && !notificationModule.active && box.activeOsd === "" && !root.mediaAutoOpened && !box.controlCenter ? 1 : 0
                     visible: opacity > 0
 
                     Behavior on opacity {
@@ -717,7 +717,7 @@ ShellRoot {
                     anchors.centerIn: parent
                     width: box.implicitWidth - 28
                     height: box.wallpaperSwitcherOpen ? 280 : 0
-                    opacity: box.wallpaperSwitcherOpen && !notificationModule.active && box.activeOsd === "" && !mediaAutoOpened && !box.controlCenter && !box.miniDashboard && !box.cliphistOpen && !box.appLauncher ? 1 : 0
+                    opacity: box.wallpaperSwitcherOpen && !notificationModule.active && box.activeOsd === "" && !root.mediaAutoOpened && !box.controlCenter && !box.miniDashboard && !box.cliphistOpen && !box.appLauncher ? 1 : 0
                     visible: opacity > 0
 
                     Behavior on opacity {
@@ -757,7 +757,7 @@ ShellRoot {
                     anchors.centerIn: parent
                     width: box.implicitWidth - 26
                     height: box.appLauncher ? 384 : 0
-                    opacity: box.appLauncher && !notificationModule.active && box.activeOsd === "" && !mediaAutoOpened && !box.controlCenter && !box.miniDashboard && !box.cliphistOpen ? 1 : 0
+                    opacity: box.appLauncher && !notificationModule.active && box.activeOsd === "" && !root.mediaAutoOpened && !box.controlCenter && !box.miniDashboard && !box.cliphistOpen ? 1 : 0
                     visible: opacity > 0
 
                     Behavior on opacity {
@@ -792,11 +792,11 @@ ShellRoot {
 
                     Loader {
                         anchors.centerIn: parent
-                        active: mediaAutoOpened
+                        active: root.mediaAutoOpened
                         asynchronous: true
 
                         sourceComponent: MediaPopup {
-                            active: mediaAutoOpened
+                            active: root.mediaAutoOpened
                         }
                     }
                 }
@@ -805,7 +805,7 @@ ShellRoot {
                 Item {
                     anchors.centerIn: parent
                     width: box.implicitWidth - 24
-                    opacity: box.controlCenter && !mediaAutoOpened && box.activeOsd === "" && !notificationModule.active ? 1 : 0
+                    opacity: box.controlCenter && !root.mediaAutoOpened && box.activeOsd === "" && !notificationModule.active ? 1 : 0
                     visible: opacity > 0
                     height: box.controlCenter && box.activeOsd === "" ? box.implicitHeight - 25 : 0
 
@@ -898,7 +898,7 @@ ShellRoot {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                height: box.sliderHeight
+                                Layout.preferredHeight: box.sliderHeight
                                 radius: box.sliderRadius
                                 color: "#3a3a3a"
 
@@ -972,7 +972,7 @@ ShellRoot {
 
                             Rectangle {
                                 Layout.fillWidth: true
-                                height: box.sliderHeight
+                                Layout.preferredHeight: box.sliderHeight
                                 radius: box.sliderRadius
                                 color: "#3a3a3a"
 
@@ -1101,7 +1101,7 @@ ShellRoot {
                         anchors.bottomMargin: 12
                         anchors.horizontalCenter: parent.horizontalCenter
                         width: parent.width - 10
-                        height: Math.min(notifList.contentHeight + 7, notifMaxHeight)
+                        height: Math.min(notifList.contentHeight + 7, root.notifMaxHeight)
                         topLeftRadius: 0
                         topRightRadius: 0
                         bottomLeftRadius: 13
@@ -1128,7 +1128,7 @@ ShellRoot {
                             anchors.topMargin: 5
                             anchors.leftMargin: 5
                             anchors.rightMargin: 5
-                            height: Math.min(contentHeight, notifMaxHeight)
+                            height: Math.min(contentHeight, root.notifMaxHeight)
                             spacing: 6
                             model: notificationModule.notificationsReversed
                             clip: true
@@ -1193,10 +1193,10 @@ ShellRoot {
                                     fillMode: Image.PreserveAspectFit
                                     asynchronous: true
                                     source: {
-                                        if (modelData.image)
-                                            return modelData.image;
-                                        if (modelData.appIcon) {
-                                            return modelData.appIcon.startsWith("/") ? "file://" + modelData.appIcon : "image://icon/" + modelData.appIcon;
+                                        if (fsNotif.modelData.image)
+                                            return fsNotif.modelData.image;
+                                        if (fsNotif.modelData.appIcon) {
+                                            return fsNotif.modelData.appIcon.startsWith("/") ? "file://" + fsNotif.modelData.appIcon : "image://icon/" + fsNotif.modelData.appIcon;
                                         }
                                         return "";
                                     }
@@ -1227,7 +1227,7 @@ ShellRoot {
                                         Layout.fillWidth: true
 
                                         Text {
-                                            text: modelData.summary
+                                            text: fsNotif.modelData.summary
                                             color: Theme.fg
                                             font {
                                                 family: Theme.fontFamily
@@ -1239,7 +1239,7 @@ ShellRoot {
                                         }
 
                                         Text {
-                                            text: modelData.receivedTime ? Qt.formatTime(modelData.receivedTime, "hh:mm") : ""
+                                            text: fsNotif.modelData.receivedTime ? Qt.formatTime(fsNotif.modelData.receivedTime, "hh:mm") : ""
                                             color: "#858585"
                                             font {
                                                 family: Theme.fontFamily
@@ -1277,7 +1277,7 @@ ShellRoot {
                                                 anchors.fill: parent
                                                 hoverEnabled: true
                                                 cursorShape: Qt.PointingHandCursor
-                                                onClicked: notificationModule.dismiss(modelData._id)
+                                                onClicked: notificationModule.dismiss(fsNotif.modelData._id)
                                             }
                                         }
                                     }
@@ -1285,7 +1285,7 @@ ShellRoot {
                                     // description / body
                                     Text {
                                         id: bodyText
-                                        text: modelData.body
+                                        text: fsNotif.modelData.body
                                         color: "#9f9f9f"
                                         font {
                                             family: Theme.fontFamily
@@ -1311,7 +1311,7 @@ ShellRoot {
                                     width: parent.width
                                     height: 1
                                     color: "#333"
-                                    visible: index < notificationModule.notifications.length - 1
+                                    visible: root.index < notificationModule.notifications.length - 1
                                 }
                             }
                         }
@@ -1323,7 +1323,7 @@ ShellRoot {
                     anchors.centerIn: parent
                     width: box.implicitWidth - 30
                     height: box.miniDashboard ? box.implicitHeight - 30 : 0  // don't fight the animation
-                    opacity: box.miniDashboard && !mediaAutoOpened && !notificationModule.active && box.activeOsd === "" && !box.cliphistOpen ? 1 : 0
+                    opacity: box.miniDashboard && !root.mediaAutoOpened && !notificationModule.active && box.activeOsd === "" && !box.cliphistOpen ? 1 : 0
                     visible: opacity > 0
 
                     Behavior on opacity {
@@ -1351,11 +1351,10 @@ ShellRoot {
                         // profile picture (display picture)
                         ClippingRectangle {
                             id: avatarClip
-                            anchors.top: parent.top
-                            anchors.left: parent.left
-                            width: avatarSize
-                            height: avatarSize
-                            radius: avatarSize / 2
+                            Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                            Layout.preferredHeight: root.avatarSize
+                            Layout.preferredWidth: root.avatarSize
+                            radius: root.avatarSize / 2
                             property string imgPath: Config.displayPicture ? "file://" + Config.displayPicture.replace("~", Quickshell.env("HOME")) : ""
                             color: (imgPath === "" || avatarImg.status !== Image.Ready) ? "#454545" : "transparent"
 
@@ -1506,19 +1505,19 @@ ShellRoot {
 
                             // lock
                             Rectangle {
-                                width: buttonSize
-                                height: buttonSize
-                                radius: buttonctlRadius
-                                color: buttonBg
+                                Layout.preferredWidth: root.buttonSize
+                                Layout.preferredHeight: root.buttonSize
+                                radius: root.buttonctlRadius
+                                color: root.buttonBg
                                 Layout.alignment: Qt.AlignVCenter
                                 Text {
                                     anchors.centerIn: parent
                                     text: ""
-                                    color: lockHover.containsMouse ? buttonHoverBg : Theme.fg
+                                    color: lockHover.containsMouse ? root.buttonHoverBg : Theme.fg
                                     font.pixelSize: 8
                                     Behavior on color {
                                         ColorAnimation {
-                                            duration: buttonHoverSpeed
+                                            duration: root.buttonHoverSpeed
                                         }
                                     }
                                 }
@@ -1543,19 +1542,19 @@ ShellRoot {
 
                             // sleep
                             Rectangle {
-                                width: buttonSize
-                                height: buttonSize
-                                radius: buttonctlRadius
-                                color: buttonBg
+                                Layout.preferredWidth: root.buttonSize
+                                Layout.preferredHeight: root.buttonSize
+                                radius: root.buttonctlRadius
+                                color: root.buttonBg
                                 Layout.alignment: Qt.AlignVCenter
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰤄"
-                                    color: sleepHover.containsMouse ? buttonHoverBg : Theme.fg
+                                    color: sleepHover.containsMouse ? root.buttonHoverBg : Theme.fg
                                     font.pixelSize: 9
                                     Behavior on color {
                                         ColorAnimation {
-                                            duration: buttonHoverSpeed
+                                            duration: root.buttonHoverSpeed
                                         }
                                     }
                                 }
@@ -1600,19 +1599,19 @@ ShellRoot {
 
                             // reboot
                             Rectangle {
-                                width: buttonSize
-                                height: buttonSize
-                                radius: buttonctlRadius
-                                color: buttonBg
+                                Layout.preferredWidth: root.buttonSize
+                                Layout.preferredHeight: root.buttonSize
+                                radius: root.buttonctlRadius
+                                color: root.buttonBg
                                 Layout.alignment: Qt.AlignVCenter
                                 Text {
                                     anchors.centerIn: parent
                                     text: ""
-                                    color: rebootHover.containsMouse ? buttonHoverBg : Theme.fg
+                                    color: rebootHover.containsMouse ? root.buttonHoverBg : Theme.fg
                                     font.pixelSize: 9
                                     Behavior on color {
                                         ColorAnimation {
-                                            duration: buttonHoverSpeed
+                                            duration: root.buttonHoverSpeed
                                         }
                                     }
                                 }
@@ -1636,19 +1635,19 @@ ShellRoot {
 
                             // shutdown
                             Rectangle {
-                                width: buttonSize
-                                height: buttonSize
-                                radius: buttonctlRadius
-                                color: buttonBg
+                                Layout.preferredWidth: root.buttonSize
+                                Layout.preferredHeight: root.buttonSize
+                                radius: root.buttonctlRadius
+                                color: root.buttonBg
                                 Layout.alignment: Qt.AlignVCenter
                                 Text {
                                     anchors.centerIn: parent
                                     text: "󰐥"
-                                    color: shutdownHover.containsMouse ? buttonHoverBg : Theme.fg
+                                    color: shutdownHover.containsMouse ? root.buttonHoverBg : Theme.fg
                                     font.pixelSize: 12
                                     Behavior on color {
                                         ColorAnimation {
-                                            duration: buttonHoverSpeed
+                                            duration: root.buttonHoverSpeed
                                         }
                                     }
                                 }
@@ -1716,7 +1715,7 @@ ShellRoot {
             Connections {
                 target: weatherIndicatorItem
                 function onToggleWeather() {
-                    if (mediaAutoOpened)
+                    if (root.mediaAutoOpened)
                         return;
                     if (!weatherPopupLoader.active)
                         weatherPopupLoader.active = true;
@@ -1732,7 +1731,7 @@ ShellRoot {
                     if (box.controlCenter)
                         return;
                     if (!box.mediaPopup)
-                        mediaAutoOpened = true;
+                        root.mediaAutoOpened = true;
                     mediaPopupHideTimer.restart();
                 }
             }
@@ -1742,8 +1741,8 @@ ShellRoot {
                 interval: Config.mediaPopupDuration
                 repeat: false
                 onTriggered: {
-                    if (mediaAutoOpened)
-                        mediaAutoOpened = false;
+                    if (root.mediaAutoOpened)
+                        root.mediaAutoOpened = false;
                 }
             }
 
@@ -1792,8 +1791,8 @@ ShellRoot {
             property var displayNotif: notificationModule.current
 
             screen: modelData
-            active: notificationModule.active && notifFullscreenMode
-            visible: notifFullscreenMode
+            active: notificationModule.active && root.notifFullscreenMode
+            visible: root.notifFullscreenMode
             cardWidth: 300
             cardHeight: 52
 
@@ -1813,8 +1812,8 @@ ShellRoot {
 
                 Image {
                     id: cardIcon
-                    width: 23
-                    height: 23
+                    Layout.preferredWidth: 23
+                    Layout.preferredHeight: 23
                     fillMode: Image.PreserveAspectCrop
                     source: {
                         if (fsNotif.displayNotif && fsNotif.displayNotif.image)
@@ -1863,9 +1862,9 @@ ShellRoot {
         target: notificationModule
         function onActiveChanged() {
             if (notificationModule.active) {
-                notifFullscreenMode = fullscreenActive;
+                root.notifFullscreenMode = root.fullscreenActive;
             } else {
-                notifFullscreenMode = false;
+                root.notifFullscreenMode = false;
             }
         }
     }

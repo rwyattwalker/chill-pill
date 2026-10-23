@@ -19,6 +19,6 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    export QML_IMPORT_PATH="$PWD/build''${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+    export QML_IMPORT_PATH="${islandBackend}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:$PWD/build''${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
   '';
 }
