@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Layouts
-import IslandBackend
 
 RowLayout {
   id: root

@@ -2,11 +2,7 @@
   pkgs ? import <nixpkgs> { },
 }:
 
-let
-  islandBackend = pkgs.callPackage ./island-backend.nix { };
-in
 pkgs.mkShell {
-  inputsFrom = [ islandBackend ];
 
   packages = [
     pkgs.cmake
@@ -19,6 +15,6 @@ pkgs.mkShell {
   ];
 
   shellHook = ''
-    export QML_IMPORT_PATH="${islandBackend}/lib/qt-6/qml:${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:$PWD/build''${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+    export QML_IMPORT_PATH="${pkgs.qt6.qtmultimedia}/lib/qt-6/qml:$PWD/build''${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
   '';
 }
