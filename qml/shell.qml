@@ -41,9 +41,9 @@ ShellRoot {
     }
 
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "togglePill"
-        description: "Toggle NixPill"
+        description: "Toggle ChillPill"
 
         onPressed: {
             if (!root.primaryBox)
@@ -55,37 +55,37 @@ ShellRoot {
     }
 
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "controlCenter"
-        description: "Toggle NixPill control center"
+        description: "Toggle ChillPill control center"
 
         onPressed: root.toggleExclusiveSurface("controlCenter")
     }
 
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "wallpaperSwitcher"
-        description: "Toggle NixPill wallpaper switcher"
+        description: "Toggle ChillPill wallpaper switcher"
         onPressed: root.toggleExclusiveSurface("wallpaperSwitcherOpen")
     }
 
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "cliphist"
-        description: "Toggle NixPill cliphist"
+        description: "Toggle ChillPill cliphist"
         onPressed: root.toggleExclusiveSurface("cliphistOpen")
     }
 
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "minidash"
-        description: "Toggle NixPill miniDashboard"
+        description: "Toggle ChillPill miniDashboard"
         onPressed: root.toggleExclusiveSurface("miniDashboard")
     }
     GlobalShortcut {
-        appid: "nix-pill"
+        appid: "chill-pill"
         name: "launcher"
-        description: "Toggle NixPill app launcher"
+        description: "Toggle ChillPill app launcher"
         onPressed: root.toggleExclusiveSurface("appLauncher")
     }
 

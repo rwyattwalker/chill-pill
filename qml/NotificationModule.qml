@@ -20,7 +20,7 @@ Item {
 
   SoundEffect {
     id: notifySound
-    source: "file://" + Quickshell.env("NIXPILL_SHELL_DIR") + "/share/notification.wav"
+    source: "file://" + Quickshell.env("CHILLPILL_SHELL_DIR") + "/share/notification.wav"
     volume: 1
   }
 

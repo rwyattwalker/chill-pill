@@ -127,7 +127,7 @@ Item {
 
     Process {
         id: listProc
-        command: ["bash", "-c", Quickshell.env("NIXPILL_SHELL_DIR") + "/scripts/cliphist-img.sh"]
+        command: ["bash", "-c", Quickshell.env("CHILLPILL_SHELL_DIR") + "/scripts/cliphist-img.sh"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {

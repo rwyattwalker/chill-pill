@@ -6,7 +6,7 @@ Singleton {
     id: root
 
     FileView {
-        path: Quickshell.env("HOME") + "/.config/nix-pill/config.jsonc"
+        path: Quickshell.env("HOME") + "/.config/chill-pill/config.jsonc"
         watchChanges: true
         onFileChanged: reload()
 
