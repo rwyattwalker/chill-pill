@@ -7,6 +7,8 @@
 [![Quickshell 0.3.0+](https://img.shields.io/badge/Quickshell-0.3.0+-green.svg)](https://github.com/quickshell-mirror/quickshell)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-orange.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
+Forked from: [ChillPill-Shell](https://github.com/LUCKYS1NGHH/ChillPill-Shell)
+
 ChillPill-Shell is a **lightweight**, feature rich dynamic pill bar for Hyprland, built with **Quickshell**.
 It's aimed squarely at users running without a dedicated GPU (like me) — Eye candy for **No-GPU users**.
 
