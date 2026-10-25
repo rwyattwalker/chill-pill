@@ -7,8 +7,12 @@ import QtQuick.Layouts
 import Quickshell.Networking
 
 PanelWindow {
-    id: wifiListWindow
+    id: root
 
+    readonly property var wifiDevice: Networking.devices.values.find(d => d.type === DeviceType.Wifi)
+    readonly property var activeNetwork: wifiDevice?.networks.values.find(n => n.connected)
+    property var targetNetwork: null
+    property string errorMessage: ""
     property real anchorX: 0
     property real anchorY: 0
 
@@ -29,12 +33,6 @@ PanelWindow {
     implicitWidth: 270
     implicitHeight: 348
     color: "transparent"
-
-    //This might not make sense.. just trying to replace exisiting calls with quick shell alternatives
-    onVisibleChanged: {
-        if (visible && Networking.wifiEnabled)
-            Networking.checkConnectivity();
-    }
 
     Rectangle {
         anchors.fill: parent
@@ -85,34 +83,41 @@ PanelWindow {
                     spacing: 4
 
                     Repeater {
-                        // ssid, display name, type, signal, secure, saved connection and connected
-                        model: Networking.wifiEnabled ? Networking.devices : null
-
+                        model: root.wifiDevice?.networks ?? null
                         delegate: Rectangle {
+                            id: delegate
+                            required property var modelData
+                            property string ssid: ""
+                            Component.onCompleted: {
+                                delegate.modelData.connectionFailed.connect(reason => {
+                                    if (reason == ConnectionFailReason.NoSecrets) {
+                                        root.passwordPromptSsid = delegate.modelData.name;
+                                        root.passwordPromptVisible = true;
+
+                                        root.targetNetwork = delegate.modelData;
+                                    }
+                                });
+                            }
                             width: networkColumn.width
                             height: 45
                             radius: 16
-                            //TODO: THIS NEEDS CHANGED ALMOST CERTAINLY
-                            color: Network.connected ? "#4173c4" : (networkMouse.containsMouse ? "#313131" : "#252525")
-                            border.color: Network.connected ? "" : "#2f2f2f"
-                            border.width: Network.connected ? 0 : 1
+                            color: modelData.connected ? "#4173c4" : (networkMouse.containsMouse ? "#313131" : "#252525")
+                            border.color: modelData.connected ? "" : "#2f2f2f"
+                            border.width: modelData.connected ? 0 : 1
 
                             MouseArea {
                                 id: networkMouse
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                enabled: !WifiController.busy && Networking.wifiEnabled
+                                enabled: Networking.wifiEnabled
                                 onClicked: {
-                                    if (connected) {
-                                        WifiController.disconnectCurrent();
+                                    if (delegate.modelData.connected) {
+                                        //NOTE: This turns of the wifi device...
+                                        delegate.modelData.disconnect();
                                         return;
                                     }
-                                    if (savedConnection || !secure) {
-                                        WifiController.connectToNetwork(ssid);
-                                        return;
-                                    }
-                                    wifiListWindow.passwordPromptSsid = ssid;
-                                    wifiListWindow.passwordPromptVisible = true;
+                                    // Try to connect
+                                    delegate.modelData.connect();
                                 }
                             }
 
@@ -125,7 +130,7 @@ PanelWindow {
                                 // security type icon (lock/unlock)
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: secure ? "\uf023" : "\uf09c"
+                                    text: delegate.modelData.security !== WifiSecurityType.Open ? "\uf023" : "\uf09c"
                                     font {
                                         family: Theme.nerdFontFamily
                                         pixelSize: 12
@@ -137,17 +142,17 @@ PanelWindow {
                                     anchors.verticalCenter: parent.verticalCenter
                                     spacing: 2
                                     Text {
-                                        text: displayName || ssid
+                                        text: delegate.modelData.name
                                         color: "#ffffff"
                                         font {
                                             family: Theme.fontFamily
                                             pixelSize: 11
-                                            weight: connected ? 500 : 300
+                                            weight: delegate.modelData.connected ? 500 : 300
                                         }
                                     }
                                     Text {
-                                        text: connected ? "Connected" : (signal >= 0 ? signal + "%" : "")
-                                        color: connected ? "#c8d7ef" : "#949494"
+                                        text: delegate.modelData.connected ? "Connected" : (delegate.modelData.signalStrength >= 0 ? delegate.modelData.signalStrength + "%" : "")
+                                        color: delegate.modelData.connected ? "#c8d7ef" : "#949494"
                                         elide: Text.ElideRight
                                         font {
                                             family: Theme.fontFamily
@@ -162,8 +167,8 @@ PanelWindow {
             }
 
             Text {
-                visible: WifiController.errorMessage.length > 0
-                text: WifiController.errorMessage
+                visible: root.errorMessage.length > 0
+                text: root.errorMessage
                 color: "#e94545"
                 font {
                     family: Theme.fontFamily
@@ -176,7 +181,7 @@ PanelWindow {
 
         // password prompt overlay box
         Rectangle {
-            visible: wifiListWindow.passwordPromptVisible
+            visible: root.passwordPromptVisible
             onVisibleChanged: if (visible)
                 passwordField.forceActiveFocus()
             anchors.fill: parent
@@ -195,7 +200,7 @@ PanelWindow {
 
                 Text {
                     width: parent.width
-                    text: "Password for " + wifiListWindow.passwordPromptSsid
+                    text: "Password for " + root.passwordPromptSsid
                     color: "#e1e1e1"
                     font {
                         family: Theme.fontFamily
@@ -225,7 +230,7 @@ PanelWindow {
                         }
                         echoMode: TextInput.Normal
                         verticalAlignment: TextInput.AlignVCenter
-                        onTextChanged: wifiListWindow.passwordValue = text
+                        onTextChanged: root.passwordValue = text
                         Keys.onReturnPressed: submitBtn.clicked()
                     }
                 }
@@ -259,10 +264,15 @@ PanelWindow {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                WifiController.connectToNetwork(wifiListWindow.passwordPromptSsid, wifiListWindow.passwordValue);
-                                wifiListWindow.passwordPromptVisible = false;
-                                wifiListWindow.passwordValue = "";
+                                try {
+                                    root.targetNetwork.connectWithPsk(root.passwordValue);
+                                } catch (err) {
+                                    console.log(err);
+                                }
+                                root.passwordPromptVisible = false;
+                                root.passwordValue = "";
                                 passwordField.text = "";
+                                root.targetNetwork = null;
                             }
                         }
                     }
@@ -292,8 +302,8 @@ PanelWindow {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                wifiListWindow.passwordPromptVisible = false;
-                                wifiListWindow.passwordValue = "";
+                                root.passwordPromptVisible = false;
+                                root.passwordValue = "";
                                 passwordField.text = "";
                             }
                         }
